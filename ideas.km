@@ -1,0 +1,244 @@
+{
+    "root": {
+        "data": {
+            "id": "co7vn9ki3xc0",
+            "created": 1668008445979,
+            "text": "期末大作业",
+            "priority": null,
+            "expandState": "expand",
+            "note": "暂定使用TUI开发，开发完成后进行算法开发，如果仍然有精力开发GUI\n"
+        },
+        "children": [
+            {
+                "data": {
+                    "id": "co7vp4nuwyw0",
+                    "created": 1668008592026,
+                    "text": "TUI开发",
+                    "layout_right_offset": {
+                        "x": -113,
+                        "y": 13
+                    }
+                },
+                "children": [
+                    {
+                        "data": {
+                            "id": "co7vs8977kw0",
+                            "created": 1668008834939,
+                            "text": "主菜单",
+                            "background": "#4bacc6",
+                            "layout_right_offset": {
+                                "x": -3,
+                                "y": -12
+                            },
+                            "expandState": "collapse"
+                        },
+                        "children": [
+                            {
+                                "data": {
+                                    "id": "co7vsfpead40",
+                                    "created": 1668008851156,
+                                    "text": "新游戏",
+                                    "note": "新建一个棋盘，并开始游戏"
+                                },
+                                "children": []
+                            },
+                            {
+                                "data": {
+                                    "id": "co7vsgdovew0",
+                                    "created": 1668008852625,
+                                    "text": "读盘",
+                                    "note": "继续之前尚未完成的棋局"
+                                },
+                                "children": []
+                            },
+                            {
+                                "data": {
+                                    "id": "co7vsgr06iw0",
+                                    "created": 1668008853430,
+                                    "text": "退出",
+                                    "note": "退出程序"
+                                },
+                                "children": []
+                            }
+                        ]
+                    },
+                    {
+                        "data": {
+                            "id": "co7vunfj5ug0",
+                            "created": 1668009024702,
+                            "text": "界面中实现人与计算机对弈",
+                            "background": "#4bacc6"
+                        },
+                        "children": []
+                    },
+                    {
+                        "data": {
+                            "id": "co7vs9pwywo0",
+                            "created": 1668008838127,
+                            "text": "界面中显示棋盘和棋子并提供操作说明",
+                            "background": "#4bacc6"
+                        },
+                        "children": []
+                    },
+                    {
+                        "data": {
+                            "id": "co7vs9xwywg0",
+                            "created": 1668008838610,
+                            "text": "暂停功能",
+                            "background": "#4bacc6",
+                            "expandState": "collapse"
+                        },
+                        "children": [
+                            {
+                                "data": {
+                                    "id": "co7vtgl8rio0",
+                                    "created": 1668008931446,
+                                    "text": "继续",
+                                    "note": "退出暂停界面，继续棋局"
+                                },
+                                "children": []
+                            },
+                            {
+                                "data": {
+                                    "id": "co7vtmg036w0",
+                                    "created": 1668008944190,
+                                    "text": "存盘",
+                                    "note": "将当前未完成的棋局保存到文件，供下次启动程序读取"
+                                },
+                                "children": []
+                            },
+                            {
+                                "data": {
+                                    "id": "co7vth8b7q80",
+                                    "created": 1668008932841,
+                                    "text": "退出",
+                                    "note": "退出程序"
+                                },
+                                "children": []
+                            }
+                        ]
+                    },
+                    {
+                        "data": {
+                            "id": "co7vvf6kqe80",
+                            "created": 1668009085110,
+                            "text": "结算界面",
+                            "note": "显示哪一方获胜即可，并允许返回主菜单",
+                            "background": "#4bacc6"
+                        },
+                        "children": []
+                    },
+                    {
+                        "data": {
+                            "id": "co7vvqi2hps0",
+                            "created": 1668009109750,
+                            "text": "界面美化",
+                            "background": "#f79646"
+                        },
+                        "children": [
+                            {
+                                "data": {
+                                    "id": "co7w2l5simw0",
+                                    "created": 1668009646673,
+                                    "text": "落子后不刷新棋盘",
+                                    "background": "#73a1bf"
+                                },
+                                "children": []
+                            },
+                            {
+                                "data": {
+                                    "id": "co7w62mn82g0",
+                                    "created": 1668009919790,
+                                    "text": "棋盘颜色设置为棕色（接近木制颜色）",
+                                    "background": "#73a1bf"
+                                },
+                                "children": [
+                                    {
+                                        "data": {
+                                            "id": "co7w6jbh5xc0",
+                                            "created": 1668009956120,
+                                            "text": "进一步实现：能否给棋盘加上类似木纹的纹理？",
+                                            "background": "#9bbb59"
+                                        },
+                                        "children": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "data": {
+                            "id": "co7vwm7o4tk0",
+                            "created": 1668009178778,
+                            "text": "更多功能",
+                            "background": "#f79646"
+                        },
+                        "children": [
+                            {
+                                "data": {
+                                    "id": "co7vwuit9400",
+                                    "created": 1668009196866,
+                                    "text": "悔棋",
+                                    "background": "#9bbb59"
+                                },
+                                "children": []
+                            },
+                            {
+                                "data": {
+                                    "id": "co7vx4031j40",
+                                    "created": 1668009217502,
+                                    "text": "更多游戏模式",
+                                    "background": "#9bbb59"
+                                },
+                                "children": []
+                            },
+                            {
+                                "data": {
+                                    "id": "co7vx9lezw00",
+                                    "created": 1668009229675,
+                                    "text": "复盘",
+                                    "background": "#c0504d"
+                                },
+                                "children": []
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "data": {
+                    "id": "co7vp5qfltk0",
+                    "created": 1668008594358,
+                    "text": "算法部分",
+                    "layout_right_offset": {
+                        "x": -177,
+                        "y": 8
+                    }
+                },
+                "children": [
+                    {
+                        "data": {
+                            "id": "co7vqhpmops0",
+                            "created": 1668008698795,
+                            "text": "α-β剪枝",
+                            "background": "#4bacc6"
+                        },
+                        "children": []
+                    },
+                    {
+                        "data": {
+                            "id": "co7vyr0afe80",
+                            "created": 1668009345944,
+                            "text": "botzone比赛",
+                            "background": "#4bacc6"
+                        },
+                        "children": []
+                    }
+                ]
+            }
+        ]
+    },
+    "template": "right",
+    "theme": "fresh-blue",
+    "version": "1.4.43"
+}
