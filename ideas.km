@@ -235,6 +235,27 @@
                         "children": []
                     }
                 ]
+            },
+            {
+                "data": {
+                    "id": "co9l603w2jc0",
+                    "created": 1668182002007,
+                    "text": "试试GUI",
+                    "layout_right_offset": {
+                        "x": -142,
+                        "y": -746
+                    }
+                },
+                "children": [
+                    {
+                        "data": {
+                            "id": "co9l67e53ps0",
+                            "created": 1668182017864,
+                            "text": "Qt的使用的学习"
+                        },
+                        "children": []
+                    }
+                ]
             }
         ]
     },
