@@ -202,6 +202,14 @@
                                 "children": []
                             }
                         ]
+                    },
+                    {
+                        "data": {
+                            "id": "cob9d5syer40",
+                            "created": 1668351829550,
+                            "text": "妙手提醒"
+                        },
+                        "children": []
                     }
                 ]
             },
@@ -240,7 +248,7 @@
                 "data": {
                     "id": "co9l603w2jc0",
                     "created": 1668182002007,
-                    "text": "试试GUI",
+                    "text": "试试GUI(目前还是先算辣）",
                     "layout_right_offset": {
                         "x": -142,
                         "y": -746
