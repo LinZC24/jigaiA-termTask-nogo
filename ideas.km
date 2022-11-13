@@ -6,7 +6,7 @@
             "text": "期末大作业",
             "priority": null,
             "expandState": "expand",
-            "note": "暂定使用TUI开发，开发完成后进行算法开发，如果仍然有精力开发GUI\n"
+            "note": "暂定使用EGE开发GUI界面\n"
         },
         "children": [
             {
