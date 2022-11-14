@@ -24,6 +24,9 @@ String operator""_ansi(const wchar_t* src, std::size_t len) {
 
 int main()
 {
+  
+  //设置字体
+
   int broadWidth = 80,broadHeight = 80;
   int nCol = 8,nRow = 8;
   //定义每个格子大小，定义行列数为8
@@ -39,6 +42,25 @@ int main()
   
   //设置背景为白色
   setbkcolor(WHITE);
+  
+  //设置文字水平中心对齐，垂直中心对齐
+  settextjustify(CENTER_TEXT, CENTER_TEXT);
+
+  //设置标题的字体和输出位置
+  setfont(100,0,"微软雅黑");
+  xyprintf(420,300,L"不围棋NOGO\n\n\n"_ansi);
+
+  //设置提示的字体和位置
+  setfont(20,0,"华文仿宋");
+  xyprintf(420,600,L"按任意键开始游戏"_ansi);
+
+  getch();
+
+  cleardevice();
+
+  //先打开界面
+  //这里还要有标题
+  //按任意键开始
 
   //从这里开始绘制主界面
   /*主界面
@@ -51,10 +73,10 @@ int main()
   int bottomWidth = 160,bottomHeight = 100;
   color_t bottom = EGEARGB(210,65,105,225);
   setfillcolor(bottom);
-  //这里还要有标题
+  
+  ege_fillrect(340,200,bottomWidth,bottomHeight);
   ege_fillrect(340,350,bottomWidth,bottomHeight);
   ege_fillrect(340,500,bottomWidth,bottomHeight);
-  ege_fillrect(340,650,bottomWidth,bottomHeight);
 
   //在这中间写处理鼠标命令的代码
   getch();//按任意键继续
