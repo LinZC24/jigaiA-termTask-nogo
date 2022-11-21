@@ -82,6 +82,7 @@ bool insideButton(const RectButton* button,int x,int y)
 
 int main()
 {
+  setcaption(L"NOGO不围棋"_ansi);
   //设置字体
 
   int broadWidth = 80,broadHeight = 80;
@@ -109,15 +110,25 @@ int main()
 
   //设置提示的字体和位置
   setfont(20,0,"华文仿宋");
-  xyprintf(420,600,L"按任意键开始游戏"_ansi);
+  xyprintf(420,600,L"按下鼠标开始游戏"_ansi);
 
-  getch();
+  //处理鼠标消息
+  //如果鼠标移动进入该判断
+  
+  for(;is_run();delay_fps(60)){
+    mouse_msg msg = getmouse();
 
-  cleardevice();
+    //当鼠标按下时进入主菜单
+    if(msg.is_down()){
+      cleardevice();
+      break;
+    }
+  }  
+  
 
   //先打开界面
   //这里还要有标题
-  //按任意键开始
+  //按下鼠标开始
 
   //从这里开始绘制主界面
   /*主界面
@@ -135,7 +146,7 @@ int main()
 
   int buttonWidth = 20,buttonHeight = 100;
   color_t button = EGEARGB(210,65,105,225);
-  
+  color_t hovered = EGEARGB(15,65,105,225);
   
   setfont(35,0,"宋体");
   setbkmode(TRANSPARENT);
@@ -164,6 +175,58 @@ int main()
   drawRectButton(&button4);
 
   //在这中间写处理鼠标命令的代码
+  int x{},y{};
+  for(;is_run();delay_fps(60)){
+    bool mouseMoved = false;
+
+    //记录鼠标位置
+    while(mousemsg()){
+      mouse_msg msg = getmouse();
+
+      if(msg.is_move()){
+        mouseMoved = true;
+        x = msg.x;
+        y = msg.y;
+      }
+    }
+
+    bool redraw = false;
+
+    //如果鼠标移动
+    if(mouseMoved){
+      if(insideButton(&button1,x,y)){
+        setfillcolor(hovered);
+        ege_fillrect(120,200,480,100);
+        redraw = true;
+      }
+      else if(insideButton(&button2,x,y)){
+        setfillcolor(hovered);
+        ege_fillrect(120,350,480,100);
+        redraw = true;
+      }
+      else if(insideButton(&button3,x,y)){
+        setfillcolor(hovered);
+        ege_fillrect(120,500,480,100);
+        redraw = true;
+      }
+      else if(insideButton(&button4,x,y)){
+        setfillcolor(hovered);
+        ege_fillrect(120,650,480,100);
+        redraw = true;
+      }
+    }
+    
+    if(redraw){
+      setfillcolor(EGEARGB(0,0,0,0));
+      clearviewport()
+      
+      ege_fillrect(120,200,480,100);
+      ege_fillrect(120,350,480,100);
+      ege_fillrect(120,500,480,100);
+      ege_fillrect(120,650,480,100);
+      redraw = false;
+    }
+  }
   getch();
   //按任意键继续
 
