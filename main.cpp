@@ -8,9 +8,9 @@
 #include <ctime>
 #include <fstream>
 #include <vector>
-#include <filesystem>
 
-using namespace std::filesystem;
+using std::vector;
+
 struct String : public std::string {
     using std::string::string;
     operator LPCSTR() {
@@ -48,20 +48,19 @@ int board[9][9]{};
 
 bool visited[9][9]{};
 
+int color{};
 int turnNumber{1};
+bool isBot{};
+bool goback{};
+
+int record[100][10]{};
 
 int dx[4]{0,1,0,-1};
 int dy[4]{-1,0,1,0};
 
-std::ofstream game_save("save.txt");
+//std::ofstream game_save("save.dat");
+std::ofstream game_save;
 
-bool has_air(int x,int y);
-
-bool isValid(int x,int y,int color);
-
-void put();
-
-bool goback{};
 
 //记录步数（本地简单实现中黑棋起手，若步数为偶数则黑棋，为奇数则白棋）
 //同时满足本地双人和人机对战的需求
@@ -85,81 +84,65 @@ struct RectButton
 void draw();
 
 //定义按钮，确定区域
-RectButton button0 = {
-  220,500,
-  400,200
-};
 
-RectButton button1 = {
+RectButton button0 = {
 	100, 200,  /* x, y */
 	500, 100,   /* width, height */
 };
 bool newGame{};
 
-RectButton button2 = {
+RectButton button1 = {
   100,350,
   500,100
 };
 bool continueGame{};
 
-RectButton button3 = {
+RectButton button2 = {
   100,500,
   500,100
 };
-//bool loadGame{};
-//bool printRules{};
 
-RectButton button4 = {
-  100,650,
-  500,100
-};
-bool exitGame{};
-
-RectButton button5 = {
-  100,150,
-  300,400
-};
-RectButton button6 = {
-  440,150,
-  300,400
-};
-
-RectButton button7 = {
-  0,0,
-  50,30
-};
-RectButton button8 = {
-  750,0,
-  90,30
-};
-
-RectButton button9 = {
-  0,0,
-  50,30
-};
-
-RectButton button10 = {
+RectButton button3 = {
 	100, 200,
 	500, 100,
 };
-RectButton button11 = {
+RectButton button4 = {
   100,350,
   500,100
 };
 
-RectButton button12 = {
+RectButton button5 = {
+  750,0,
+  90,30
+};
+
+RectButton button6 = {
+  0,0,
+  50,30
+};
+
+RectButton button7 = {
+	100, 200,
+	500, 100,
+};
+RectButton button8 = {
+  100,350,
+  500,100
+};
+
+RectButton button9 = {
   100,500,
   500,100
 };
 
-RectButton button13 = {
+RectButton button10 = {
   100,650,
   500,100
 };
 
-RectButton button14 = {
-  220,300,
-  400,240
+RectButton button11 = {
+	100, 200,  
+	500, 100,   
 };
 
 
@@ -181,48 +164,59 @@ void drawBoard();
 
 //游戏内有关操作的处理
 void game();
+//加载存档
 void loadGame();
+//暂停菜单
 void printPauseMenu();
 void pauseMenu();
+void saveGame();
 void printRules();
 
 bool inBoard(int x,int y);
 
 //电脑落子算法
-void find();
+bool inBoard(int x,int y);
+bool has_air(int x,int y);
+bool isValid(int x,int y,int color);
 
 //胜负判断
-bool win();
+bool col_is_winner(int color);
 bool blackWin{},whiteWin{};
 
 //选边
 void select();
 bool isBlack{},isWhite{};
 
-//加载存档
-void load();
+//结算
+void endMenu();
 
 int main()
 {
-  memset(board,0,sizeof(board));
+  srand((unsigned)time(0));
   start();
+  menu:;
   cleardevice();
   //先打开界面
   //按下鼠标开始
-  menu:;
+  
   PIMAGE background = newimage();
   getimage(background,"D:\\vscode-xege-template-main\\c90ce4f403259b4edcbcae413c7d1423.jpg");
-  putimage(0,240,background);  
+  putimage(0,240,background);
+  drawButton();
   drawMenu();
-
-  //getch();
+  
   //按任意键继续
   if(newGame) {
-    //select();
+    memset(board,0,sizeof(board));
+    newGame = false;
+    select();
+    cleardevice();
     drawBoard();
     game();
   }
   if(continueGame) {
+    continueGame = false;
+    cleardevice();
     loadGame();
     drawBoard();
     game();
@@ -231,15 +225,10 @@ int main()
     cleardevice();
     goto menu;
   }
-  cleardevice();
-  
-  drawBoard();
-  game();
-
   //游戏结束，关闭窗口
-  getch();
-  closegraph();
   return 0;
+  closegraph();
+  
 }
 
 void start()
@@ -254,7 +243,6 @@ void start()
   //设置背景为白色
   setbkcolor(WHITE);
 
-  
   //设置文字水平中心对齐，垂直中心对齐
   settextjustify(CENTER_TEXT, CENTER_TEXT);
 
@@ -267,39 +255,10 @@ void start()
   xyprintf(420,600,L"按任意键开始游戏"_ansi);
   if(getch())
     return;
-  //drawRectButton(&button0);
-
-  //处理鼠标消息
-  //如果鼠标移动进入该判断
-  
-  /*for(;is_run();delay_fps(60)){
-    //当鼠标按下时进入主菜单
-    while(mousemsg()){
-      mouse_msg msg = getmouse();
-
-      int x{},y{};
-      if(msg.is_move()){
-        x = msg.x;
-        y = msg.y;
-      }
-
-      if(msg.is_left()){
-        if(msg.is_down()){
-          if(insideButton(&button0,x,y)){
-          
-          return;
-          }
-        }
-      }
-    }
-    
-  }  */
 }
 
 void drawMenu()
 {
-  
-  drawButton();
   //在这中间写处理鼠标命令的代码
   int x{},y{};
   for(;is_run();delay_fps(60)){
@@ -307,39 +266,35 @@ void drawMenu()
     
     //记录鼠标位置
     loop:;
+    mouse_msg msg;
     while(mousemsg()){
-      mouse_msg msg = getmouse();
+      msg = getmouse();
 
       if(msg.is_move()){
        // mouseMoved = true;
         x = msg.x;
         y = msg.y;
       }
-      //分别判断在四个按钮范围内按下鼠标的操作
-      if(msg.is_left()){
-        if(msg.is_down()){
-          if(insideButton(&button1,x,y)){
-            cleardevice();
-            //std::ofstream oFile;
-            newGame = true;
-            return;
-          }
-          if(insideButton(&button2,x,y)){
-            cleardevice();
-            continueGame = true;
-            return;
-            //load();
-          }
-          if(insideButton(&button3,x,y)){
-            closegraph();
-          }
-          /*if(insideButton(&button4,x,y)){
-          }*/
+    }
+      //分别判断在三个按钮范围内按下鼠标的操作
+    if(msg.is_left()){
+      if(msg.is_down()){
+        if(insideButton(&button0,x,y)){
+          cleardevice();
+          //std::ofstream oFile;
+          newGame = true;
+          return;
+        }
+        if(insideButton(&button1,x,y)){
+          cleardevice();
+          continueGame = true;
+          return;
+        }
+        if(insideButton(&button2,x,y)){
+          closegraph();
         }
       }
-
     }
-
   }
 }
 
@@ -349,19 +304,11 @@ void drawButton()
   int buttonWidth = 20,buttonHeight = 100;
 
   //从这里开始绘制主界面
-  /*主界面
-    NOGO不围棋
-    -开始游戏
-    -读取存档
-    -查看历史游戏
-    -退出
-  */
 
   //设置字体颜色
   setcolor(BLACK);
 
   //打印菜单
-  //在菜单文字下方打印透明的按钮实现点击功能
   settextjustify(CENTER_TEXT, CENTER_TEXT);
   setfont(75,0,"微软雅黑");
   xyprintf(420,100,L"开始游戏"_ansi);
@@ -377,34 +324,33 @@ void drawButton()
   xyprintf(135,250,L"开始游戏"_ansi);
   setfillcolor(button);
   ege_fillrect(100,200,buttonWidth,buttonHeight);
-  drawRectButton(&button1);
+  drawRectButton(&button0);
 
   xyprintf(135,400,L"继续游戏"_ansi);
   setfillcolor(button);
   ege_fillrect(100,350,buttonWidth,buttonHeight);
-  drawRectButton(&button2);
+  drawRectButton(&button1);
 
   xyprintf(135,550,L"退出"_ansi);
   setfillcolor(button);
   ege_fillrect(100,500,buttonWidth,buttonHeight);
-  drawRectButton(&button3);
+  drawRectButton(&button2);
   
-  /*xyprintf(135,700,L"退出"_ansi);
-  setfillcolor(button);
-  ege_fillrect(100,650,buttonWidth,buttonHeight);
-  drawRectButton(&button4);*/
 }
 
 void select()
 {
   //设置按钮大小有关参数
-  int buttonWidth = 300,buttonHeight = 400;
+  int buttonWidth = 20,buttonHeight = 100;
 
   //界面样式如下
   /*
   选择你想执的子
   黑棋 白棋
   */
+  PIMAGE background = newimage();
+  getimage(background,"D:\\vscode-xege-template-main\\c90ce4f403259b4edcbcae413c7d1423.jpg");
+  putimage(0,240,background);  
 
   //中心对齐
   settextjustify(CENTER_TEXT, CENTER_TEXT);
@@ -413,39 +359,45 @@ void select()
   setfont(75,0,"微软雅黑");
   xyprintf(420,100,L"选择你想执的子"_ansi);
 
-  setfont(50,0,"宋体");
-  xyprintf(250,300,L"黑棋"_ansi);
-  ege_fillrect(100,150,buttonWidth,buttonHeight);
-  drawRectButton(&button5);
+  settextjustify(LEFT_TEXT, CENTER_TEXT);
+  setfont(35,0,"宋体");
+  setbkmode(TRANSPARENT);
 
-  setfont(50,0,"宋体");
-  xyprintf(590,300,L"白棋"_ansi);
-  ege_fillrect(440,150,buttonWidth,buttonHeight);
-  drawRectButton(&button6);
+  xyprintf(135,250,L"黑棋"_ansi);
+  setfillcolor(button);
+  ege_fillrect(100,200,buttonWidth,buttonHeight);
+  drawRectButton(&button3);
 
-  int x{},y{};
+  xyprintf(135,400,L"白棋"_ansi);
+  setfillcolor(button);
+  ege_fillrect(100,350,buttonWidth,buttonHeight);
+  drawRectButton(&button4);
+
   for(;is_run();delay_fps(60)){
-    bool mouseMoved = false;
-
+    int x{},y{};
     //记录鼠标位置
     while(mousemsg()){
       mouse_msg msg = getmouse();
 
       if(msg.is_move()){
-        mouseMoved = true;
         x = msg.x;
         y = msg.y;
       }
 
-      //分别判断在四个按钮范围内按下鼠标的操作
       if(msg.is_left()){
         if(msg.is_down()){
-          if(insideButton(&button5,x,y)){
+          x = msg.x;
+          y = msg.y;
+          if(insideButton(&button3,x,y)){
             isBlack = true;
+            isBot = false;
+            color = -1;
             return;
           }
-          if(insideButton(&button6,x,y)){
+          if(insideButton(&button4,x,y)){
             isWhite = true;
+            isBot = true;
+            color = 1;
             return;
           }
         }
@@ -455,23 +407,26 @@ void select()
 }
 
 void loadGame() {
-  if(exists("game_save.txt")) {
-    std::ifstream game_save("save.txt");
-    int color{},x{},y{};
-    while(game_save >> color) {
-      if(!color) break;
-      game_save >> x >> y;
-      if(color == 1) board[x][y] = 1;
-      if(color == -1) board[x][y] = -1;
-      color = 0;
+  std::ifstream game_load("D:\\vscode-xege-template-main\\SAVE\\save.dat");
+  if(game_load) {
+    for(int y{};y < 9;y++) {
+      for(int x{};x < 9;x++) {
+        game_load >> board[x][y];
+      }
     }
   }
+  return;
 }
 
 void drawBoard()
 {
   //主界面绘制完成后执行清屏
   //从这里开始绘制棋盘（大小为9*9）（以及UI）
+
+  PIMAGE background = newimage();
+  getimage(background,"D:\\vscode-xege-template-main\\c90ce4f403259b4edcbcae413c7d1423.jpg");
+  putimage(0,240,background);
+
   color_t brown = EGEARGB(223,249,214,91);
 
   settextjustify(CENTER_TEXT, CENTER_TEXT);
@@ -479,15 +434,10 @@ void drawBoard()
   setcolor(BLACK);
   setfont(20,0,"微软雅黑");
   
-  /*setfillcolor(EGEARGB(50,65,105,225));
-  ege_fillrect(0,0,50,30);
-  xyprintf(25,15,L"暂停"_ansi);
-  drawRectButton(&button7);*/
-
   setfillcolor(EGEARGB(50,65,105,225));
   ege_fillrect(750,0,90,30);
   xyprintf(800,15,L"暂停游戏"_ansi);
-  drawRectButton(&button8);
+  drawRectButton(&button5);
 
   color_t boardColor = brown;
 
@@ -503,143 +453,6 @@ void drawBoard()
       ege_rectangle(x, y, boardWidth, boardHeight);
     }
   }
-
-  
-}
-
-void game()
-{
-  //bool click{false};
-  for(int x{};x < 9;x++) {
-    for(int y{};y < 9;y++) {
-      if(board[x][y]) {
-        int bx = x * 80 + 70;
-        int by = y * 80 + 70;
-        if(board[x][y] == 1) {
-          setfillcolor(EGEACOLOR(0xFF,BLACK));
-          ege_fillellipse(bx,by,60,60);
-        }
-        if(board[x][y] == -1) {
-          setfillcolor(EGEACOLOR(0xFF,WHITE));
-          ege_fillellipse(bx,by,60,60);
-        }
-      }
-    }
-  }
-  for(;is_run();delay_fps(60)){
-    int boardX{},boardY{};
-    //back:;
-    while(mousemsg()){
-      mouse_msg msg = getmouse();
-
-      if(msg.is_move()){
-        //mouseMoved = true;
-        boardX = msg.x;
-        boardY = msg.y;
-      }
-      if(msg.is_left()) {
-        if(msg.is_down()) {
-          boardX = msg.x;
-          boardY = msg.y;
-          if(boardX < 800 && boardX > 60 && boardY < 800 && boardY > 60){
-            int x{},y{},bx{},by{};
-            x = (boardX - 60) / 80;
-            y = (boardY - 60) / 80;
-            bx = x * 80 + 70;
-            by = y * 80 + 70;
-            if(board[x][y] == 0) {
-              if(turnNumber % 2 != 0) {
-                turnNumber++;
-                setfillcolor(EGEACOLOR(0xFF,BLACK));
-                ege_fillellipse(bx,by,60,60);
-                board[x][y] = 1;
-                game_save << 1 << x << y << '\n';
-                boardX = 0;
-                boardY = 0;
-              }
-              else if(turnNumber % 2 == 0) {
-                turnNumber++;
-                setfillcolor(EGEACOLOR(0xFF,WHITE));
-                ege_fillellipse(bx,by,60,60);
-                board[x][y] = -1;
-                game_save << -1 << x << y << '\n';
-                boardX = 0;
-                boardY = 0;
-              }
-            }
-          }
-          /*if(insideButton(&button7,boardX,boardY)) {
-            pauseMenu();
-            drawBoard();
-            for(int x{};x < 9;x++) {
-              for(int y{};y < 9;y++) {
-                if(board[x][y] == 1) {
-                  int bx = x * 80 + 70;
-                  int by = y * 80 + 70;
-                  setfillcolor(EGEACOLOR(0xFF,BLACK));
-                  ege_fillellipse(bx,by,60,60);
-                }
-                else if(board[x][y] == -1) {
-                  int bx = x * 80 + 70;
-                  int by = y * 80 + 70;
-                  setfillcolor(EGEACOLOR(0xFF,WHITE));
-                  ege_fillellipse(bx,by,60,60);
-                }
-              }
-            }
-          }*/
-          if(insideButton(&button8,boardX,boardY)) {
-            printPauseMenu();
-            pauseMenu();
-            if(goback) {
-              return;
-            }
-            drawBoard();
-            for(int x{};x < 9;x++) {
-              for(int y{};y < 9;y++) {
-                if(board[x][y] == 1) {
-                  int bx = x * 80 + 70;
-                  int by = y * 80 + 70;
-                  setfillcolor(EGEACOLOR(0xFF,BLACK));
-                  ege_fillellipse(bx,by,60,60);
-                }
-                else if(board[x][y] == -1) {
-                  int bx = x * 80 + 70;
-                  int by = y * 80 + 70;
-                  setfillcolor(EGEACOLOR(0xFF,WHITE));
-                  ege_fillellipse(bx,by,60,60);
-                }
-              }
-            }
-          }
-        }
-      }
-      /*if(isBlack) {
-        isBlack = false;
-        isWhite = true;
-        if(msg.is_left()){
-        //count++;
-          if(msg.is_down()){
-            //boardX = msg.x;
-            //boardY = msg.y;
-            int col{},row{};
-            col = ((boardX - 60) / 80) * 80 + 100;
-            row = ((boardY - 60) / 80) * 80 + 100;
-            if(boardX <= 800 && boardX >= 60 && boardY <= 800 && boardY >= 60 && board[row + 1][col + 1] == '0'){
-              setfillcolor(EGEACOLOR(0xFF,BLACK));
-              ege_fillellipse(col - 30,row - 30,60,60);
-              //click = true;
-              board[row + 1][col + 1] = 1;
-              boardX = 0;
-              boardY = 0;
-              //goto back;
-            }
-          }
-        }
-      }*/
-    }
-  }
-  
 }
 
 bool inBoard(int x,int y) {
@@ -660,7 +473,7 @@ bool has_air(int x,int y) {
       if(board[nx][ny] == 0) {
         A = true;
       }
-      if(board[nx][ny] == board[x][y] && visited[nx][ny] == false) {
+      if(board[nx][ny] == board[x][y] && !visited[nx][ny]) {
         if(has_air(nx,ny)) {
           A = true;
         }
@@ -692,34 +505,177 @@ bool isValid(int x,int y,int color) {
     }
   }
   board[x][y] = 0;
-  return false;
+  return true;
 }
 
-/*void find()
+bool col_is_winner(int COLOR)
 {
-  int col{},row{};
-        col = rand()%(9) + 1;
-        row = rand()%(9) + 1;
-        if(board[row][col] == '0'){
-          if (board[row - 1][col] != 'b' || 
-              board[row + 1][col] != 'b' ||
-              board[row][col - 1] != 'b' ||
-              board[row][col + 1] != 'b'){
-                board[row][col] = 'w';
-                col = (col - 1) * 80 + 100;
-                row = (row - 1) * 80 + 100;
-                setfillcolor(EGEACOLOR(0xFF,WHITE));
-                ege_fillellipse(col - 30,row - 30,60,60);
+  int col = COLOR;
+  bool A = true;
+  memset(visited,0,sizeof(visited));
+  for(int x{};x < 9;x++) {
+    for(int y{};y < 9;y++) {
+      if(board[x][y] && !has_air(x,y)) {
+        if(col == 1) {
+          whiteWin = true;
+          blackWin = false;
+        }
+        else if(col == -1) {
+          whiteWin = false;
+          blackWin = true;
+        }
+        cleardevice();
+        return true;
+      }
+      if(isValid(x,y,col)) {
+        A = false;
+      }
+    }
+  }
+  if(col == 1) {
+    whiteWin = true;
+    blackWin = false;
+  }
+  else if(col == -1) {
+    whiteWin = false;
+    blackWin = true;
+  }
+  return A;
+}
+
+void game()
+{
+  for(int y{};y < 9;y++) {
+    for(int x{};x < 9;x++) {
+      if(board[x][y]) {
+        int tx = x * 80 + 70;
+        int ty = y * 80 + 70;
+        if(board[x][y] == 1) {
+          setfillcolor(EGEACOLOR(0xFF,BLACK));
+        }
+        if(board[x][y] == -1) {
+          setfillcolor(EGEACOLOR(0xFF,WHITE));
+        }
+        ege_fillellipse(tx,ty,60,60);
+      }
+    }
+  }
+  for(;is_run();delay_fps(60)){
+    if(isBot) {
+      vector<int> validx;
+      vector<int> validy;
+      for(int nx{};nx < 9;nx++) {
+        for(int ny{};ny < 9;ny++) {
+          if(isValid(nx,ny,color)) {
+            validx.push_back(nx);
+            validy.push_back(ny);
+          }
+        }
+      }
+      int l = validx.size();
+      if(l == 0) {
+        if(color == 1) blackWin = true;
+        if(color == -1) whiteWin = true;
+        endMenu();
+      }
+      int num = rand() % (l);
+      board[validx[num]][validy[num]] = color;
+      if(color == 1) {
+        setfillcolor(EGEACOLOR(0xFF,BLACK));
+      }
+      if(color == -1) {
+        setfillcolor(EGEACOLOR(0xFF,WHITE));
+      }
+      int bnx = validx[num] * 80 + 70;
+      int bny = validy[num] * 80 + 70;
+      turnNumber++;
+      ege_fillellipse(bnx,bny,60,60);
+      if(col_is_winner(color)) {
+        cleardevice();
+        endMenu();
+        return;
+      }
+      isBot = false;
+    }
+    int boardX{},boardY{};
+    mouse_msg msg;
+    while(mousemsg()){
+      msg = getmouse();
+      if(msg.is_move()){
+        boardX = msg.x;
+        boardY = msg.y;
+      }
+    }
+    if(msg.is_left()) {
+      if(msg.is_down()) {
+        boardX = msg.x;
+        boardY = msg.y;
+      
+        if(boardX < 800 && boardX > 60 && boardY < 800 && boardY > 60 /*&& game_save.is_open() == true*/){    
+          int x{},y{},bx{},by{};
+          x = (boardX - 60) / 80;
+          y = (boardY - 60) / 80;
+          bx = x * 80 + 70;
+          by = y * 80 + 70;
+          if(board[x][y] == 0) {
+            if(turnNumber % 2 != 0 && isBlack) {
+              turnNumber++;
+              setfillcolor(EGEACOLOR(0xFF,BLACK));
+              ege_fillellipse(bx,by,60,60);
+              board[x][y] = 1;
+              if(col_is_winner(1)) {
+                cleardevice();
+                endMenu();
                 return;
               }
-        }            
-}*/
-
-/*bool win()
-{
-
+              boardX = 0;
+              boardY = 0;
+            }
+            else if(turnNumber % 2 == 0 && isWhite) {
+              turnNumber++;
+              setfillcolor(EGEACOLOR(0xFF,WHITE));
+              ege_fillellipse(bx,by,60,60);
+              board[x][y] = -1;
+              if(col_is_winner(-1)) {
+                cleardevice();
+                endMenu();
+                return;
+              }
+              boardX = 0;
+              boardY = 0;
+            }
+            isBot = true;
+          }
+        }
+        if(insideButton(&button5,boardX,boardY)) {
+          printPauseMenu();
+          pauseMenu();
+          if(goback) {
+            return;
+          }
+          drawBoard();
+          for(int x{};x < 9;x++) {
+            for(int y{};y < 9;y++) {
+              if(board[x][y] == 1) {
+                int bx = x * 80 + 70;
+                int by = y * 80 + 70;
+                setfillcolor(EGEACOLOR(0xFF,BLACK));
+                ege_fillellipse(bx,by,60,60);
+              }
+              else if(board[x][y] == -1) {
+                int bx = x * 80 + 70;
+                int by = y * 80 + 70;
+                setfillcolor(EGEACOLOR(0xFF,WHITE));
+                ege_fillellipse(bx,by,60,60);
+              }
+            }
+          }
+        }
+      }
+    }    
+  }  
 }
-*/
+
 bool insideButton(const RectButton* button,int x,int y)
 {
   return (x >= button->x) && (y >= button->y)
@@ -740,97 +696,112 @@ void printPauseMenu() {
   getimage(background,"D:\\vscode-xege-template-main\\c90ce4f403259b4edcbcae413c7d1423.jpg");
   putimage(0,240,background);
   
-    //设置按钮大小有关参数
-    int buttonWidth = 20,buttonHeight = 100;
+  //设置按钮大小有关参数
+  int buttonWidth = 20,buttonHeight = 100;
 
-    //设置文字对齐方式为水平中心对齐，垂直中心对齐
-    settextjustify(CENTER_TEXT, CENTER_TEXT);
+  //设置文字对齐方式为水平中心对齐，垂直中心对齐
+  settextjustify(CENTER_TEXT, CENTER_TEXT);
 
-    //设置字体颜色
-    setcolor(BLACK);
+  //设置字体颜色
+  setcolor(BLACK);
 
-    setfont(75,0,"微软雅黑");
-    xyprintf(420,100,L"暂停中"_ansi);
+  setfont(75,0,"微软雅黑");
+  xyprintf(420,100,L"暂停中"_ansi);
 
-    settextjustify(LEFT_TEXT, CENTER_TEXT);
-    //设置按钮字体和背景填充模式
-    setfont(35,0,"宋体");
-    setbkmode(TRANSPARENT);
+  settextjustify(LEFT_TEXT, CENTER_TEXT);
+  //设置按钮字体和背景填充模式
+  setfont(35,0,"宋体");
+  setbkmode(TRANSPARENT);
 
-    //依次绘制各个按钮
-    xyprintf(135,250,L"继续游戏"_ansi);
-    setfillcolor(button);
-    ege_fillrect(100,200,buttonWidth,buttonHeight);
-    drawRectButton(&button10);
+  //依次绘制各个按钮
+  xyprintf(135,250,L"继续游戏"_ansi);
+  setfillcolor(button);
+  ege_fillrect(100,200,buttonWidth,buttonHeight);
+  drawRectButton(&button7);
 
-    xyprintf(135,400,L"存档"_ansi);
-    setfillcolor(button);
-    ege_fillrect(100,350,buttonWidth,buttonHeight);
-    drawRectButton(&button11);
+  xyprintf(135,400,L"保存游戏"_ansi);
+  setfillcolor(button);
+  ege_fillrect(100,350,buttonWidth,buttonHeight);
+  drawRectButton(&button8);
 
-    xyprintf(135,550,L"游戏规则"_ansi);
-    setfillcolor(button);
-    ege_fillrect(100,500,buttonWidth,buttonHeight);
-    drawRectButton(&button12);
+  xyprintf(135,550,L"游戏规则"_ansi);
+  setfillcolor(button);
+  ege_fillrect(100,500,buttonWidth,buttonHeight);
+  drawRectButton(&button9);
 
-    xyprintf(135,700,L"退出游戏并保存"_ansi);
-    setfillcolor(button);
-    ege_fillrect(100,650,buttonWidth,buttonHeight);
-    drawRectButton(&button13);
+  xyprintf(135,700,L"退出游戏"_ansi);
+  setfillcolor(button);
+  ege_fillrect(100,650,buttonWidth,buttonHeight);
+  drawRectButton(&button10);
+}
 
+void saveGame() {
+  game_save.open("D:\\vscode-xege-template-main\\SAVE\\save.dat");
+  for(int y{};y < 9;y++) {
+    for(int x{};x < 9;x++) {
+      game_save << " " << board[x][y];
+    }
+    game_save << '\n';
+  }
+  return;
 }
 
 void pauseMenu() {
-    for(;is_run();delay_fps(60)){
-    
+  for(;is_run();delay_fps(60)){
     //记录鼠标位置
-      while(mousemsg()){
-        mouse_msg msg = getmouse();
-        int x{},y{};
-        if(msg.is_move()){
+    int x{},y{};
+    while(mousemsg()){
+      mouse_msg msg = getmouse();
+
+      if(msg.is_move()){
+        x = msg.x;
+        y = msg.y;
+      }
+    
+    //分别判断在四个按钮范围内按下鼠标的操作
+      if(msg.is_left()){
+        if(msg.is_down()){
           x = msg.x;
           y = msg.y;
-        }
-        //分别判断在四个按钮范围内按下鼠标的操作
-        if(msg.is_left()){
-          if(msg.is_down()){
-            x = msg.x;
-            y = msg.y;
-            if(insideButton(&button10,x,y)){
-              cleardevice();
-              return;
-            }
-            if(insideButton(&button11,x,y)){
-              //保存游戏有关代码
-              
-              return;
-            }
-            if(insideButton(&button12,x,y)){
-              printRules();
-              printPauseMenu();
-            }
-            if(insideButton(&button13,x,y)){
-              //保存之后退出
-              goback = true;
-              return;
-            }
+          if(insideButton(&button7,x,y)){
+            cleardevice();
+            drawBoard();
+            game();
+            return;
+          }
+          if(insideButton(&button8,x,y)){
+            //保存游戏有关代码
+            saveGame(); 
+            cleardevice();
+            return;
+          }
+          if(insideButton(&button9,x,y)){
+            printRules();
+            printPauseMenu();
+          }
+          if(insideButton(&button10,x,y)){
+            //保存之后退出
+            goback = true;
+            return;
           }
         }
       }
-    }
-
+    }     
+  }
 }
 
 void printRules() 
 {
   cleardevice();
-  
+  PIMAGE background = newimage();
+  getimage(background,"D:\\vscode-xege-template-main\\c90ce4f403259b4edcbcae413c7d1423.jpg");
+  putimage(0,240,background);
 
   setfont(20,0,"微软雅黑");
   setbkmode(TRANSPARENT);
   settextjustify(CENTER_TEXT,CENTER_TEXT);
   
-  drawRectButton(&button9);
+  drawRectButton(&button6);
   xyprintf(25,15,L"返回"_ansi);
 
   setfont(40,0,"微软雅黑");
@@ -852,61 +823,81 @@ void printRules()
 
   int x{},y{};
   for(;is_run();delay_fps(60)){
-    //bool mouseMoved = false;
-
     //记录鼠标位置
+    mouse_msg msg;
     while(mousemsg()){
-      mouse_msg msg = getmouse();
+       msg = getmouse();
 
       if(msg.is_move()){
         //mouseMoved = true;
         x = msg.x;
         y = msg.y;
       }
-
-      if(msg.is_left()){
-        if(msg.is_down()){
-          if(insideButton(&button9,x,y)) {
-            cleardevice();
-            return;
-          }
+    }
+    if(msg.is_left()){
+      if(msg.is_down()){
+        if(insideButton(&button6,x,y)) {
+          cleardevice();
+          return;
         }
       }
     }
   }  
 }
 
-void put() {
-  if(turnNumber) {
-    
+void endMenu() {
+  PIMAGE background = newimage();
+  getimage(background,"D:\\vscode-xege-template-main\\c90ce4f403259b4edcbcae413c7d1423.jpg");
+  putimage(0,240,background);  
+  if(blackWin) {
+    settextjustify(CENTER_TEXT, CENTER_TEXT);
+    setcolor(BLACK);
+    setfont(75,0,"微软雅黑");
+    xyprintf(420,100,L"黑棋胜利"_ansi);  
   }
+  if(whiteWin) {
+    settextjustify(CENTER_TEXT, CENTER_TEXT);
+    setcolor(BLACK);
+    setfont(75,0,"微软雅黑");
+    xyprintf(420,100,L"白棋胜利"_ansi);  
+  }
+  setfont(35,0,"宋体");
+  setbkmode(TRANSPARENT);
+  settextjustify(LEFT_TEXT, CENTER_TEXT);
+  xyprintf(135,250,L"返回主菜单"_ansi);
+
+  //各种变量重设回初始状态
+  blackWin = false;
+  whiteWin = false;
+  isBlack = false;
+  isWhite = false;
+  turnNumber = 1;
+  memset(board,0,sizeof(board));
+  memset(visited,0,sizeof(visited));
+
+  setfillcolor(button);
+  ege_fillrect(100,200,20,100);
+  drawRectButton(&button11);
+  for(;is_run();delay_fps(60)) {
+    while(mousemsg()){
+      mouse_msg msg = getmouse();
+      int x{},y{};
+      if(msg.is_move()){
+        x = msg.x;
+        y = msg.y;
+      }
+    
+      if(msg.is_left()) {
+        if(msg.is_down()) {
+          x = msg.x;
+          y = msg.y;
+          if(insideButton(&button11,x,y)) {
+            goback = true;
+            return;
+          }
+        }
+      }
+    }
+  }
+
 }
-//如果鼠标移动悬浮时变色
-/*
-      /*bool redraw = false;
-      if(mouseMoved){
-        if(insideButton(&button1,x,y)){
-          setfillcolor(hovered);
-          ege_fillrect(120,200,480,100);
-          //redraw = true;
-        }
-        else if(insideButton(&button2,x,y)){
-          setfillcolor(hovered);
-          ege_fillrect(120,350,480,100);
-          //redraw = true;
-        }
-        else if(insideButton(&button3,x,y)){
-          setfillcolor(hovered);
-          ege_fillrect(120,500,480,100);
-          //redraw = true;
-        }
-        else if(insideButton(&button4,x,y)){
-          setfillcolor(hovered);
-          ege_fillrect(120,650,480,100);
-          redraw = true;
-        }
-        if(redraw){
-          cleardevice();
-          drawButton();
-        }
-        }*/
